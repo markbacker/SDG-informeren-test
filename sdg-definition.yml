@@ -1,0 +1,313 @@
+openapi: "3.0.2"
+
+info:
+  version: "0.0.1"
+  title: Sdg
+  description: De sdg, Single Digital Gateway
+
+servers:
+  - description: Development
+    url: http://localhost:8081/rest/v1
+  - description: Test
+    url: http://172.20.20.107:8080/rest/v1
+  - description: Staging
+    url: http://172.20.20.107:8081/rest/v1
+
+paths:
+  /product/upn/{upn}:
+    parameters:
+      - $ref: '#/components/parameters/Upn'
+
+    get:
+      summary: find a product for a specific community in the given language
+      description: find a product for a specific community in the given language
+      operationId: getProductByUpn
+      parameters:
+        - $ref: '#/components/parameters/Taal'
+        - $ref: '#/components/parameters/OWMSIdentifier'
+      responses:
+        200:
+          description: return SdgProduct
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/SdgProduct'
+        404:
+          $ref: '#/components/responses/404NotFound'
+    put:
+      summary: adds a product for a specific community
+      description: adds the product information in any language
+      operationId: addProductInformation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SdgProduct'
+      responses:
+        200:
+          description: Product information successfully added
+        400:
+          $ref: '#/components/responses/400BadRequest'
+
+  /product/owms/{owms}:
+    parameters:
+      - $ref: '#/components/parameters/OWMSIdentifier'
+      - $ref: '#/components/parameters/Taal'
+    get:
+      operationId: getProductsByOWMSIdentifier
+      description: find products for an owms organisation
+      responses:
+        200:
+          description: return list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpnProduct'
+        404:
+          $ref: '#/components/responses/404NotFound'
+components:
+  parameters:
+    Upn:
+      description: the upn of the requested product
+      in: path
+      name: upn
+      required: true
+      schema:
+        type: string
+    Taal:
+      description: the requested language
+      in: header
+      name: taal
+      required: true
+      schema:
+        type: string
+    OWMSIdentifier:
+      in: header
+      name: owmsIdentifier
+      required: true
+      schema:
+        type: string
+    owms:
+      in: path
+      name: owms
+      required: true
+      schema:
+        type: string
+
+  responses:
+    404NotFound:
+      description: Product/s not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    400BadRequest:
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    401Unauthorized:
+      description: Unauthorized request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Errors:
+      type: array
+      items:
+        $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        parameter:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+    SdgProduct:
+      description: een product gedefinieerd volgens de SDG verordening
+      type: object
+      properties:
+        taal:
+          description: de taak waarin de dienst geleverd wordt
+          type: string
+        productNaam:
+          description: de naam volgens de Nationale Portalen
+          type: string
+        samenvatting:
+          description: de samenvatting volgens de Nationale Portalen
+          type: string
+        laatsteWijziging:
+          description: de datum waarop het product voor het laatst gecontroleerd is
+          type: string
+        uniformProduct:
+            $ref: '#/components/schemas/UniformProduct'
+        productInformatie:
+              $ref: '#/components/schemas/ProductInformatie'
+        procedureInformatie:
+              $ref: '#/components/schemas/ProcedureInformatie'
+    UpnProduct:
+      description: een product gedefinieerd van de UPN
+      type: object
+      properties:
+        upn:
+          description: de upn van het product
+          type: string
+        taal:
+          description: de taak waarin de dienst geleverd wordt
+          type: string
+        productNaam:
+          description: de naam volgens de Nationale Portalen
+          type: string
+        samenvatting:
+          description: de samenvatting volgens de Nationale Portalen
+          type: string
+        laatsteWijziging:
+          description: de datum waarop het product voor het laatst gecontroleerd is
+          type: string
+
+    ErrorCode:
+      type: string
+      enum:
+        - PRODUCT_NOT_FOUND
+        - PARAMETER_REQUIRED
+        - PARAMETER_LENGTH
+        - INVALID_MUNICIPALITY_CODE
+        - NOT_AUTHORIZED
+        - UNEXPECTED_ERROR
+    SdgType:
+      type: object
+      properties:
+        code:
+          type: string
+        titel:
+          type: string
+    SdgArea:
+      type: object
+      properties:
+        code:
+          type: string
+        titel:
+          type: string
+        sdgType:
+              $ref: '#/components/schemas/SdgType'
+    SdgThema:
+      type: object
+      properties:
+        code:
+          type: string
+        titel:
+          type: string
+        sdgArea:
+              $ref: '#/components/schemas/SdgArea'
+    OWMSIdentifier:
+      type: object
+      properties:
+        identifier:
+          type: string
+        prefLabel:
+          type: string
+    ProductInformatie:
+      type: object
+      properties:
+        bevoegdGezag:
+          $ref: '#/components/schemas/Organisatie'
+        productNaam:
+          type: string
+        beschrijving:
+          description: de beschrijving volgens de lokale authoriteit
+          type: string
+        lokaties:
+          $ref: '#/components/schemas/Lokaties'
+        laatsteWijziging:
+          type: string
+    UniformProduct:
+      type: object
+      properties:
+        identifier:
+          type: string
+        prefLabel:
+          type: string
+        grondslaglabel:
+          type: string
+        grondslaglink:
+          type: string
+        sdgThema:
+          $ref: '#/components/schemas/SdgThema'
+    ProcedureInformatie:
+      type: object
+      properties:
+        stappen:
+          type: string
+        uitzonderingen:
+          type: string
+        authenticatie_Vereisten:
+          type: string
+        identificatie_Vereisten:
+          type: string
+        handtekening_Vereisten:
+          type: string
+        bewijs_Type:
+          type: string
+        bewijs_Formaat:
+          type: string
+        bezwaar:
+          type: string
+        beroep:
+          type: string
+        kosten:
+          type: string
+        betaalwijzen:
+          type: string
+        deadlines:
+          type: string
+        geen_Reactie:
+          type: string
+        vertragingen:
+          type: string
+        laatsteWijziging:
+          type: string
+        eigenaar_Procedure:
+          $ref: '#/components/schemas/Organisatie'
+    Organisatie:
+      type: object
+      properties:
+        owmsIdentifier:
+          type: string
+        owmsPreflabel:
+          type: string
+        lokaties:
+          $ref: '#/components/schemas/Lokaties'
+    Lokaties:
+      type: array
+      items:
+        $ref: '#/components/schemas/Lokatie'
+    Lokatie:
+      type: object
+      properties:
+        adres:
+          type: string
+        openingstijden:
+          type: string
+        contact:
+          $ref: '#/components/schemas/Contact'
+    Contact:
+      type: object
+      properties:
+        email:
+          type: string
+        site:
+          type: string
+        telefoon:
+          type: string
