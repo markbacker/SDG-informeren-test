@@ -2,42 +2,23 @@ openapi: "3.0.2"
 
 info:
   version: "0.0.1"
-  title: Sdg
-  description: De sdg, Single Digital Gateway
+  title: VNG - Single Digital Gateway (SDG)
+  description: Deze toepassing faciliteert bevragingen van Producten binnen de SDG verordening
 
 servers:
   - description: Development
     url: http://localhost:8081/rest/v1
   - description: Test
-    url: http://172.20.20.107:8080/rest/v1
-  - description: Staging
-    url: http://172.20.20.107:8081/rest/v1
+    url: https://sdg-test.lostlemon.nl/rest/v1
 
 paths:
-  /product/upn/{upn}:
-    parameters:
-      - $ref: '#/components/parameters/Upn'
-
-    get:
-      summary: find a product for a specific community in the given language
-      description: find a product for a specific community in the given language
-      operationId: getProductByUpn
-      parameters:
-        - $ref: '#/components/parameters/Taal'
-        - $ref: '#/components/parameters/OWMSIdentifier'
-      responses:
-        200:
-          description: return SdgProduct
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/SdgProduct'
-        404:
-          $ref: '#/components/responses/404NotFound'
+  /sdgproducten:
     put:
-      summary: adds a product for a specific community
-      description: adds the product information in any language
-      operationId: addProductInformation
+      tags:
+        - SDG Producten
+      summary: Voegt een SdgProduct toe of wijzigt de gegevens van een SdgProduct
+      description: Het toevoegen of wijzigen van een SdgProduct gegevens aan de invoervoorziening in een bepaalde taal
+      operationId: putSdgProduct
       requestBody:
         required: true
         content:
@@ -46,45 +27,90 @@ paths:
               $ref: '#/components/schemas/SdgProduct'
       responses:
         200:
-          description: Product information successfully added
+          description: Sdg Product gegevens succesvol bijgewerkt
         400:
           $ref: '#/components/responses/400BadRequest'
 
-  /product/owms/{owms}:
+  /sdgproducten/{identifier}:
+    parameters:
+      - $ref: '#/components/parameters/identifier'
+    get:
+      tags:
+        - SDG Producten
+      summary: Het ophalen van een SDG Product
+      description: Het ophalen van een SDG Product aan de hand van de unieke productnaam, de taal en de overheidsorganisatie.
+      operationId: getSdgProduct
+      parameters:
+        - $ref: '#/components/parameters/Taal'
+        - $ref: '#/components/parameters/OWMSIdentifier'
+      responses:
+        200:
+          description: Zoekactie geslaagd
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/SdgProduct'
+        404:
+          $ref: '#/components/responses/404NotFound'
+  /sdgproducten/{owmsIdentifier}:
     parameters:
       - $ref: '#/components/parameters/OWMSIdentifier'
       - $ref: '#/components/parameters/Taal'
     get:
-      operationId: getProductsByOWMSIdentifier
-      description: find products for an owms organisation
+      tags:
+        - SDG Producten
+      summary: Het ophalen van alle SDG Producten voor een overheidsorganisatie in een gegeven taal
+      description: Het ophalen van een SDG Product aan de hand van de overheidsorganisatie en de taal.
+      operationId: getSdgProducten
       responses:
         200:
-          description: return list of products
+          description: Ophalen geslaagd
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UpnProduct'
+                  $ref: '#/components/schemas/SdgProduct'
+        404:
+          $ref: '#/components/responses/404NotFound'
+
+  /organisatie/{identifier}:
+    parameters:
+      - $ref: '#/components/parameters/OWMSIdentifier'
+      - $ref: '#/components/parameters/Taal'
+    get:
+      tags:
+        - Overheidsorganisaties
+      summary: Het ophalen van gegevens van een overheidsorganisaties zoals bekend binnen de owms
+      description: Het ophalen van gegevens van een overheidsorganisaties zoals bekend binnen de owms
+      operationId: getOrganisatie
+      responses:
+        200:
+          description: Ophalen geslaagd
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisatie'
         404:
           $ref: '#/components/responses/404NotFound'
 components:
   parameters:
-    Upn:
-      description: the upn of the requested product
+    identifier:
+      description: de identifier van het Product
       in: path
-      name: upn
+      name: identifier
       required: true
       schema:
         type: string
     Taal:
-      description: the requested language
+      description: de gevraagde taal
       in: header
       name: taal
       required: true
       schema:
         type: string
     OWMSIdentifier:
+      description: de identifier van de overheidsorganisatie
       in: header
       name: owmsIdentifier
       required: true
@@ -99,7 +125,7 @@ components:
 
   responses:
     404NotFound:
-      description: Product/s not found
+      description: Product(en) niet gevonden
       content:
         application/json:
           schema:
@@ -111,7 +137,7 @@ components:
           schema:
             $ref: '#/components/schemas/Errors'
     401Unauthorized:
-      description: Unauthorized request
+      description: Niet geautoriseerd
       content:
         application/json:
           schema:
@@ -157,25 +183,6 @@ components:
               $ref: '#/components/schemas/ProductInformatie'
         procedureInformatie:
               $ref: '#/components/schemas/ProcedureInformatie'
-    UpnProduct:
-      description: een product gedefinieerd van de UPN
-      type: object
-      properties:
-        upn:
-          description: de upn van het product
-          type: string
-        taal:
-          description: de taak waarin de dienst geleverd wordt
-          type: string
-        productNaam:
-          description: de naam volgens de Nationale Portalen
-          type: string
-        samenvatting:
-          description: de samenvatting volgens de Nationale Portalen
-          type: string
-        laatsteWijziging:
-          description: de datum waarop het product voor het laatst gecontroleerd is
-          type: string
 
     ErrorCode:
       type: string
@@ -193,7 +200,7 @@ components:
           type: string
         titel:
           type: string
-    SdgArea:
+    InformationArea:
       type: object
       properties:
         code:
@@ -202,15 +209,15 @@ components:
           type: string
         sdgType:
               $ref: '#/components/schemas/SdgType'
-    SdgThema:
+    Policy:
       type: object
       properties:
         code:
           type: string
         titel:
           type: string
-        sdgArea:
-              $ref: '#/components/schemas/SdgArea'
+        informationArea:
+              $ref: '#/components/schemas/InformationArea'
     OWMSIdentifier:
       type: object
       properties:
@@ -233,18 +240,25 @@ components:
         laatsteWijziging:
           type: string
     UniformProduct:
+      description: een product gedefinieerd van de UPN
       type: object
       properties:
         identifier:
+          description: de unieke identifier van het product
           type: string
         prefLabel:
+          description: de naam volgens de Nationale Portalen
           type: string
         grondslaglabel:
           type: string
         grondslaglink:
           type: string
-        sdgThema:
-          $ref: '#/components/schemas/SdgThema'
+        datumLaatsteCheck:
+          description: de datum waarop het product voor het laatst gecontroleerd is
+          type: string
+          format: date
+        policy:
+          $ref: '#/components/schemas/Policy'
     ProcedureInformatie:
       type: object
       properties:
