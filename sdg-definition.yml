@@ -1,7 +1,7 @@
 openapi: "3.0.2"
 
 info:
-  version: "0.0.1"
+  version: "0.1.0"
   title: VNG - Single Digital Gateway (SDG)
   description: Deze toepassing faciliteert bevragingen van Producten binnen de SDG verordening
 
@@ -13,54 +13,14 @@ servers:
 
 paths:
   /sdgproducten:
-    put:
-      tags:
-        - SDG Producten
-      summary: Voegt een SdgProduct toe of wijzigt de gegevens van een SdgProduct
-      description: Het toevoegen of wijzigen van een SdgProduct gegevens aan de invoervoorziening in een bepaalde taal
-      operationId: putSdgProduct
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SdgProduct'
-      responses:
-        200:
-          description: Sdg Product gegevens succesvol bijgewerkt
-        400:
-          $ref: '#/components/responses/400BadRequest'
-
-  /sdgproducten/{identifier}:
     parameters:
-      - $ref: '#/components/parameters/identifier'
-    get:
-      tags:
-        - SDG Producten
-      summary: Het ophalen van een SDG Product
-      description: Het ophalen van een SDG Product aan de hand van de unieke productnaam, de taal en de overheidsorganisatie.
-      operationId: getSdgProduct
-      parameters:
-        - $ref: '#/components/parameters/Taal'
-        - $ref: '#/components/parameters/OWMSIdentifier'
-      responses:
-        200:
-          description: Zoekactie geslaagd
-          content:
-            application/json:
-              schema:
-                  $ref: '#/components/schemas/SdgProduct'
-        404:
-          $ref: '#/components/responses/404NotFound'
-  /sdgproducten/{owmsIdentifier}:
-    parameters:
-      - $ref: '#/components/parameters/OWMSIdentifier'
       - $ref: '#/components/parameters/Taal'
+      - $ref: '#/components/parameters/OWMSIdentificatie'
     get:
       tags:
         - SDG Producten
       summary: Het ophalen van alle SDG Producten voor een overheidsorganisatie in een gegeven taal
-      description: Het ophalen van een SDG Product aan de hand van de overheidsorganisatie en de taal.
+      description: Het ophalen van SDG Producten aan de hand van de overheidsorganisatie en de taal.
       operationId: getSdgProducten
       responses:
         200:
@@ -74,9 +34,32 @@ paths:
         404:
           $ref: '#/components/responses/404NotFound'
 
-  /organisatie/{identifier}:
+  /sdgproducten/{upnidentificatie}:
     parameters:
-      - $ref: '#/components/parameters/OWMSIdentifier'
+      - $ref: '#/components/parameters/identificatie'
+    get:
+      tags:
+        - SDG Producten
+      summary: Het ophalen van een SDG Product adhv van de unieke identificatie uit de UPL
+      description: Het ophalen van een SDG Product aan de hand van de unieke productnaam, de taal en de overheidsorganisatie.
+      operationId: getSdgProduct
+      parameters:
+        - $ref: '#/components/parameters/Taal'
+        - $ref: '#/components/parameters/OWMSIdentificatie'
+      responses:
+        200:
+          description: Zoekactie geslaagd
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/SdgProduct'
+        404:
+          $ref: '#/components/responses/404NotFound'
+
+
+  /organisaties/{owmsIdentificatie}:
+    parameters:
+      - $ref: '#/components/parameters/OWMSIdentificatie'
       - $ref: '#/components/parameters/Taal'
     get:
       tags:
@@ -95,60 +78,241 @@ paths:
           $ref: '#/components/responses/404NotFound'
 components:
   parameters:
-    identifier:
-      description: de identifier van het Product
+    identificatie:
+      description: de unieke identificatie van het Product volgens de [UPL](https://data.overheid.nl/dataset/uniforme-productnamenlijst)
       in: path
-      name: identifier
+      name: identificatie
       required: true
       schema:
         type: string
     Taal:
-      description: de gevraagde taal
+      description: de gevraagde twee-letterige taalcode volgens [ISO_639-1](https://en.wikipedia.org/wiki/ISO_639-1)
       in: header
       name: taal
       required: true
       schema:
         type: string
-    OWMSIdentifier:
-      description: de identifier van de overheidsorganisatie
+    OWMSIdentificatie:
+      description: de identificatie van de overheidsorganisatie volgens de [StandaardenOverheid.nl](https://standaarden.overheid.nl/owms/terms/Gemeente.html)
       in: header
-      name: owmsIdentifier
-      required: true
-      schema:
-        type: string
-    owms:
-      in: path
-      name: owms
+      name: owmsIdentificatie
       required: true
       schema:
         type: string
 
   responses:
-    404NotFound:
-      description: Product(en) niet gevonden
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     400BadRequest:
       description: bad request
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Errors'
+          example:
+            type: https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#/10.4.1
+              400 Bad Request
+            title: Ten minste één parameter moet worden opgegeven.
+            status: 400
+            detail: The request could not be understood by the server due to malformed
+              syntax. The client SHOULD NOT repeat the request without modification.
+            instance: https://datapunt.voorbeeldgemeente.nl/api/v1/resourcenaam?parameter=waarde
+            code: paramsRequired
+            invalidParams:
+              - type: https://www.vng.nl/realisatie/api/validaties/integer
+                name: verblijfplaats__huisnummer
+                code: integer
+                reason: Waarde is geen geldige integer.
     401Unauthorized:
       description: Niet geautoriseerd
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    404NotFound:
+      description: Opgevraagde resource(s) niet gevonden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
   schemas:
+    SdgProduct:
+      description: een product gedefinieerd volgens de SDG verordening
+      type: object
+      properties:
+        taal:
+          description: de taal waarin de dienst geleverd wordt
+          type: string
+        productNaam:
+          description: de naam volgens de Nationale Portalen
+          type: string
+        samenvatting:
+          description: de samenvatting volgens de Nationale Portalen
+          type: string
+        verwijzingen:
+          description: de verwijzingen naar de wettelijke grondslag van het product
+          type: string
+        datumLaatsteCheck:
+          description: de datum waarop het product voor het laatst gecontroleerd is
+          type: string
+        uniformProduct:
+            $ref: '#/components/schemas/UniformProduct'
+        product:
+              $ref: '#/components/schemas/Product'
+        productAanvraag:
+              $ref: '#/components/schemas/ProductAanvraag'
+    Product:
+      description: het product zoals opgenomen in de invoervoorziening
+      type: object
+      properties:
+        productNaam:
+          description: de naam van het product volgens de lokale authoriteit
+          type: string
+        beschrijving:
+          description: de beschrijving volgens de lokale authoriteit
+          type: string
+        productPaginaLink:
+          description: de link naar de pagina van de lokale autoriteit waarop de gegevens gevonden kunnen worden
+          type: string
+        beschikbareTalen:
+          description: de talen waarin de gegevens over het product beschikbaar zijn
+          type: string
+        laatsteWijziging:
+          description: de datum waarop de informatie over het product voor het laatst gewijzigd is
+          type: string
+        bevoegdGezag:
+          description: de organisatie verantwoordelijk voor de inhoud van de informatie over het product
+          $ref: '#/components/schemas/Organisatie'
+        lokaties:
+          description: de lokaties waarop het product afgenomen kan worden
+          $ref: '#/components/schemas/Lokaties'
+    UniformProduct:
+      description: een product gedefinieerd in de UPL
+      type: object
+      properties:
+        identificatie:
+          description: de unieke identificatie van het product
+          type: string
+        prefLabel:
+          description: de naam volgens de Nationale Portalen
+          type: string
+        grondslaglabel:
+          description: het label van de grondslag (afkomstig uit de UPL)
+          type: string
+        grondslaglink:
+          description: het link naar de grondslag (afkomstig uit de UPL)
+          type: string
+        datumLaatsteCheck:
+          description: de datum waarop het product voor het laatst gecontroleerd is
+          type: string
+          format: date
+        policy:
+          $ref: '#/components/schemas/Policy'
+    ProductAanvraag:
+      description: de gegevens rondom de aanvraag indien aanwezig
+      type: object
+      properties:
+        stappen:
+          description: beschrijving van de stappen die doorlopen moeten worden bij een aanvraag
+          type: string
+        uitzonderingen:
+          description: beschrijving van de uitzonderingen op de procedure
+          type: string
+        vereisten:
+          description: de vereisten omtrent authenticatie, identificatie en ondertekening voor een aanvraag
+          type: string
+        bewijs:
+          description: bewijzen die overlegd moeten worden bij de aanvraag
+          type: string
+        bezwaar:
+          description: beschrijvingen van de wijzen waarop bezwaar of beroep kan worden aangetekend
+          type: string
+        kosten:
+          description: de kosten van de procedure en de wijze waarop deze voldaan kunnen worden
+          type: string
+        deadlines:
+          description: de tijdspaden die gelden voor het doorlopen van de procedure
+          type: string
+        geen_Reactie:
+          description: een beschrijving wat de burger kan doen als de instantie geen actie onderneemt op de aanvraag
+          type: string
+        laatsteWijziging:
+          description: de datum waarop de de tekst voor het laatst gewijzigd is
+          type: string
+        eigenaar_Procedure:
+          $ref: '#/components/schemas/Organisatie'
+    InformationArea:
+      description: Het informatiegebied volgens de EU bv A. Travel within the Union
+      type: object
+      properties:
+        code:
+          description: De EU code die het informatiegebied duidt
+          type: string
+        titel:
+          description: De omschrijving van het informatiegebied
+          type: string
+    Policy:
+      description: De 'Policy' volgens de EU bv B1. seeking employment in another Member State
+      type: object
+      properties:
+        code:
+          description: De EU code die de 'Policy' duidt
+          type: string
+        titel:
+          description: De omschrijving van de 'Policy'
+          type: string
+        informationArea:
+              $ref: '#/components/schemas/InformationArea'
+    OWMSIdentificatie:
+      description: De identificatie van een organisatie volgens de OWMS
+      type: object
+      properties:
+        identificatie:
+          description: De identificatie van een organisatie volgens de OWMS
+          type: string
+        prefLabel:
+          description: De omschrijving van een organisatie volgens de OWMS
+          type: string
+    Organisatie:
+      description: De organisatie zoals bekend binnen de SDG
+      type: object
+      properties:
+        identificatie:
+          $ref: '#/components/schemas/OWMSIdentificatie'
+        lokaties:
+          $ref: '#/components/schemas/Lokaties'
+    Lokaties:
+      type: array
+      items:
+        $ref: '#/components/schemas/Lokatie'
+    Lokatie:
+      description: de fysieke lokatie van een vestiging van de organisatie
+      type: object
+      properties:
+        adres:
+          description: het adres (postcode, straat, huisnummer) van de lokatie
+          type: string
+        openingstijden:
+          description: de openingstijden van de lokatie
+          type: string
+        contact:
+          $ref: '#/components/schemas/Contact'
+    Contact:
+      description: de contactgegevens waarmee een organisatie bereikt kan worden
+      type: object
+      properties:
+        email:
+          description: het email adres
+          type: string
+        site:
+          description: de url van de site
+          type: string
+        telefoon:
+          description: het telefoonnummer
+          type: string
     Errors:
       type: array
       items:
         $ref: '#/components/schemas/Error'
-
     Error:
       type: object
       properties:
@@ -161,29 +325,6 @@ components:
       required:
         - code
         - message
-    SdgProduct:
-      description: een product gedefinieerd volgens de SDG verordening
-      type: object
-      properties:
-        taal:
-          description: de taak waarin de dienst geleverd wordt
-          type: string
-        productNaam:
-          description: de naam volgens de Nationale Portalen
-          type: string
-        samenvatting:
-          description: de samenvatting volgens de Nationale Portalen
-          type: string
-        laatsteWijziging:
-          description: de datum waarop het product voor het laatst gecontroleerd is
-          type: string
-        uniformProduct:
-            $ref: '#/components/schemas/UniformProduct'
-        productInformatie:
-              $ref: '#/components/schemas/ProductInformatie'
-        procedureInformatie:
-              $ref: '#/components/schemas/ProcedureInformatie'
-
     ErrorCode:
       type: string
       enum:
@@ -193,135 +334,3 @@ components:
         - INVALID_MUNICIPALITY_CODE
         - NOT_AUTHORIZED
         - UNEXPECTED_ERROR
-    SdgType:
-      type: object
-      properties:
-        code:
-          type: string
-        titel:
-          type: string
-    InformationArea:
-      type: object
-      properties:
-        code:
-          type: string
-        titel:
-          type: string
-        sdgType:
-              $ref: '#/components/schemas/SdgType'
-    Policy:
-      type: object
-      properties:
-        code:
-          type: string
-        titel:
-          type: string
-        informationArea:
-              $ref: '#/components/schemas/InformationArea'
-    OWMSIdentifier:
-      type: object
-      properties:
-        identifier:
-          type: string
-        prefLabel:
-          type: string
-    ProductInformatie:
-      type: object
-      properties:
-        bevoegdGezag:
-          $ref: '#/components/schemas/Organisatie'
-        productNaam:
-          type: string
-        beschrijving:
-          description: de beschrijving volgens de lokale authoriteit
-          type: string
-        lokaties:
-          $ref: '#/components/schemas/Lokaties'
-        laatsteWijziging:
-          type: string
-    UniformProduct:
-      description: een product gedefinieerd van de UPN
-      type: object
-      properties:
-        identifier:
-          description: de unieke identifier van het product
-          type: string
-        prefLabel:
-          description: de naam volgens de Nationale Portalen
-          type: string
-        grondslaglabel:
-          type: string
-        grondslaglink:
-          type: string
-        datumLaatsteCheck:
-          description: de datum waarop het product voor het laatst gecontroleerd is
-          type: string
-          format: date
-        policy:
-          $ref: '#/components/schemas/Policy'
-    ProcedureInformatie:
-      type: object
-      properties:
-        stappen:
-          type: string
-        uitzonderingen:
-          type: string
-        authenticatie_Vereisten:
-          type: string
-        identificatie_Vereisten:
-          type: string
-        handtekening_Vereisten:
-          type: string
-        bewijs_Type:
-          type: string
-        bewijs_Formaat:
-          type: string
-        bezwaar:
-          type: string
-        beroep:
-          type: string
-        kosten:
-          type: string
-        betaalwijzen:
-          type: string
-        deadlines:
-          type: string
-        geen_Reactie:
-          type: string
-        vertragingen:
-          type: string
-        laatsteWijziging:
-          type: string
-        eigenaar_Procedure:
-          $ref: '#/components/schemas/Organisatie'
-    Organisatie:
-      type: object
-      properties:
-        owmsIdentifier:
-          type: string
-        owmsPreflabel:
-          type: string
-        lokaties:
-          $ref: '#/components/schemas/Lokaties'
-    Lokaties:
-      type: array
-      items:
-        $ref: '#/components/schemas/Lokatie'
-    Lokatie:
-      type: object
-      properties:
-        adres:
-          type: string
-        openingstijden:
-          type: string
-        contact:
-          $ref: '#/components/schemas/Contact'
-    Contact:
-      type: object
-      properties:
-        email:
-          type: string
-        site:
-          type: string
-        telefoon:
-          type: string
