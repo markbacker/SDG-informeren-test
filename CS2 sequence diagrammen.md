@@ -1,9 +1,9 @@
-
 **Inhoud**
 
 [TOC]
 
 [the mermaid live editor](https://mermaid-js.github.io/mermaid-live-editor)
+
 ## Variant 1: gedeelde invoervoorziening
 
 ### Raadplegen op Landelijk portaal
@@ -32,7 +32,7 @@ sequenceDiagram %% diagram
 
 	rect rgb(245, 245, 245)
         Note left of A: Interactiedeel portalen en producten API
-		
+
 		B->>N: Zoeken productbeschrijving
 		activate N
 		  N->>B: Generieke productpagina
@@ -48,7 +48,8 @@ sequenceDiagram %% diagram
 		deactivate N
 	end
 ```
-*Het landelijke portaal haalt specifieke teksten op*
+
+_Het landelijke portaal haalt specifieke teksten op_
 
 #### Werking in meer detail (zonder search engine)
 
@@ -154,8 +155,8 @@ sequenceDiagram %% diagram
       deactivate B
     end
 ```
-*De specifieke producttekst wordt door de browser van de burger of ondernemer ingevoegd*
 
+_De specifieke producttekst wordt door de browser van de burger of ondernemer ingevoegd_
 
 <div style="page-break-before: always;"></div>
 
@@ -188,15 +189,13 @@ sequenceDiagram %% diagram
 
 <div style="page-break-before: always;"></div>
 
-
 ### Raadplegen op gemeentelijke website
 
-De burger of ondernemer heeft een vraag en zoekt met Google naar informatie. Via Google wordt de burger verwezen naar de website van een gemeente. 
+De burger of ondernemer heeft een vraag en zoekt met Google naar informatie. Via Google wordt de burger verwezen naar de website van een gemeente.
 
 Een gemeentelijke website kan de teksten van zijn eigen productpagina's dubbel beheren naast de teksten in de invoervoorziening. De gemeente kan er ook voor kiezen om de SDG teksten alleen bij de te houden in de invoervoorziening en deze in te voegen in de eigen pagina's. Deze laatste variant is in het onder staande diagram uitgewerkt
 
 De gemeentelijke website haalt de SDG teksten op bij de invoervoorziening en voegt deze in in de eigen productpagina. Hiermee is deze pagina compleet en wordt deze getoond aan de burger
-
 
 ```mermaid
 sequenceDiagram %% diagram
@@ -238,7 +237,6 @@ Alle gegevens zijn nu beschikbaar en het Landelijk portaal maakt de SDG productp
 
 Een SDG productpagina bevat conform SDG verordening SDG tags waardoor de pagina vindbaar en herkenbaar is voor het Your Europe portaal.
 
-
 ```mermaid
 sequenceDiagram %% diagram
   %% participant
@@ -264,9 +262,9 @@ sequenceDiagram %% diagram
         activate R
           R->>A: ophalen <br> producttekst gemeente
           activate A
-            A->>R: producttekst 
+            A->>R: producttekst
           deactivate A
-          R->>N: producttekst 
+          R->>N: producttekst
         deactivate R
         activate N
             N->>N: toevoegen SDG tags
@@ -279,11 +277,11 @@ sequenceDiagram %% diagram
 
 ### Raadplegen op gemeentelijke website
 
-De burger of ondernemer heeft een vraag en zoekt met Google naar informatie. Via Google wordt de burger verwezen naar de website van een gemeente. 
+De burger of ondernemer heeft een vraag en zoekt met Google naar informatie. Via Google wordt de burger verwezen naar de website van een gemeente.
 
 De productpagina en de SDG teksten worden in het lokale CMS beheerd. De website heeft dus alle informatie voor de productpagina in het eigen CMS beschikbaar. Afhankelijk van het CMS wordt de hele productpagina rechtstreeks ingelezen of wordt ook voor de eigen website gebruik gemaakt van API's (bijvoorbeeld Open Webconcept werkt op deze wijze)
 
-De gemeentelijke website haalt de pagian met de SDG teksten op bij het CMS en toont deze aan de  burger
+De gemeentelijke website haalt de pagian met de SDG teksten op bij het CMS en toont deze aan de burger
 
 ```mermaid
 sequenceDiagram %% diagram
@@ -301,7 +299,7 @@ sequenceDiagram %% diagram
       activate W
             W->>A: ophalen <br> producttekst gemeente
             activate A
-              A->>W: producttekst 
+              A->>W: producttekst
             deactivate A
           W->>B: Gemeentelijke productpagina (niet SDG compliant)
       deactivate W
